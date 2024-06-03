@@ -1,0 +1,330 @@
+zabbix_export:
+  version: '6.2'
+  date: '2024-05-30T21:12:48Z'
+  template_groups:
+    -
+      uuid: c0b56254bdfb47ca90620a351f91e1eb
+      name: 'ERAS-ZABBIX - TEMPLATES'
+    -
+      uuid: 57b7ae836ca64446ba2c296389c009b7
+      name: Templates/Modules
+    -
+      uuid: 31a2c7b235b1462495f4bad087ee8943
+      name: 'Templates Huawei'
+  templates:
+    -
+      uuid: f6c031abaebb45929dba607260ff45b3
+      template: 'Template Optical Modules Huawei - Corrigido'
+      name: 'Template Optical Modules Huawei - Corrigido'
+      groups:
+        -
+          name: 'ERAS-ZABBIX - TEMPLATES'
+        -
+          name: Templates/Modules
+        -
+          name: 'Templates Huawei'
+      discovery_rules:
+        -
+          uuid: c5600c6b8835487ea10f66f7b215dcbb
+          name: 'Network Optical Modules Multi Lane'
+          type: EXTERNAL
+          key: 'discovery_hw_interfaces_opticas_debian11.py[{HOST.CONN},"{$SNMP_COMMUNITY}","{$SNMP_PORTA}","M"]'
+          delay: 1h
+          filter:
+            conditions:
+              -
+                macro: '{#ENTPHYSICALNAME}'
+                value: 40GE|100GE
+                formulaid: A
+              -
+                macro: '{#IFALIAS}'
+                value: '^""$'
+                operator: NOT_MATCHES_REGEX
+                formulaid: B
+          lifetime: 1d
+          item_prototypes:
+            -
+              uuid: 2ac9ca89a8044f9ca52bc165f13e1302
+              name: 'Interface {#ENTPHYSICALNAME}({#IFALIAS}): RX Power'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.2011.5.25.31.1.1.3.1.32.{#SNMPINDEX}'
+              key: 'hwEntityOpticalLaneRxPowerMLLane0[{#ENTPHYSICALNAME}]'
+              history: 10d
+              value_type: FLOAT
+              units: dBm
+              preprocessing:
+                -
+                  type: REGEX
+                  parameters:
+                    - '([^\,\s]*),([^\,\s]*),([^,\s]*),([^,\s]*)'
+                    - \1
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '0.01'
+              tags:
+                -
+                  tag: Application
+                  value: 'Sinal Optical Multi Lane'
+              trigger_prototypes:
+                -
+                  uuid: cebe46ecaad64bdabb486a0aaa6a0878
+                  expression: |
+                    (last(/Template Optical Modules Huawei - Corrigido/hwEntityOpticalLaneRxPowerMLLane0[{#ENTPHYSICALNAME}])
+                     <= 
+                    (last(/Template Optical Modules Huawei - Corrigido/hwEntityOpticalLaneRxPowerMLLane0[{#ENTPHYSICALNAME}]) * 0.93))
+                    and
+                    (last(/Template Optical Modules Huawei - Corrigido/hwEntityOpticalLaneRxPowerMLLane0[{#ENTPHYSICALNAME}]) <=-40)
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Optical Modules Huawei - Corrigido/hwEntityOpticalLaneRxPowerMLLane0[{#ENTPHYSICALNAME}])>=-40'
+                  name: 'Existe um possível Rompimento de fibra na  {#ENTPHYSICALNAME}({#IFALIAS}) Sinal -40 dBm'
+                  event_name: 'Existe um possível Rompimento de fibra na  {#ENTPHYSICALNAME}({#IFALIAS}) Sinal -40 dBm'
+                  priority: DISASTER
+                  manual_close: 'YES'
+                -
+                  uuid: 063459d3abad47538e53fd61b1fe7fa4
+                  expression: 'last(/Template Optical Modules Huawei - Corrigido/hwEntityOpticalLaneRxPowerMLLane0[{#ENTPHYSICALNAME}])<=-26'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Optical Modules Huawei - Corrigido/hwEntityOpticalLaneRxPowerMLLane0[{#ENTPHYSICALNAME}])>=-26'
+                  name: 'Sinal elevado na interface:{#ENTPHYSICALNAME}({#IFALIAS}) acima de -26 dBm'
+                  priority: WARNING
+                  manual_close: 'YES'
+            -
+              uuid: 2c4ba167905949da982f07fdfa25673a
+              name: 'Interface {#ENTPHYSICALNAME}({#IFALIAS}): TX Power'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.2011.5.25.31.1.1.3.1.33.{#SNMPINDEX}'
+              key: 'hwEntityOpticalLaneTxPowerMLLane0[{#ENTPHYSICALNAME}]'
+              history: 10d
+              value_type: FLOAT
+              units: dBm
+              preprocessing:
+                -
+                  type: REGEX
+                  parameters:
+                    - '([^\,\s]*),([^\,\s]*),([^,\s]*),([^,\s]*)'
+                    - \1
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '0.01'
+              tags:
+                -
+                  tag: Application
+                  value: 'Sinal Optical Multi Lane'
+            -
+              uuid: 9760bf9321b84da5b26b15af4638b64c
+              name: 'Temperature Interface {#ENTPHYSICALNAME}({#IFALIAS})'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.5.{#SNMPINDEX}'
+              key: 'hwEntityOpticalTemperatureM[{#ENTPHYSICALNAME}]'
+              delay: 2m
+              history: 10d
+              units: Cº
+              tags:
+                -
+                  tag: Application
+                  value: 'Sinal Optical Multi Lane'
+              trigger_prototypes:
+                -
+                  uuid: 377b188ec84f4473a8902ab4e1588fa3
+                  expression: 'last(/Template Optical Modules Huawei - Corrigido/hwEntityOpticalTemperatureM[{#ENTPHYSICALNAME}])>=70'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Optical Modules Huawei - Corrigido/hwEntityOpticalTemperatureM[{#ENTPHYSICALNAME}])<=70'
+                  name: 'Temperatura crítica: {#ENTPHYSICALNAME}({#IFALIAS}) maior que 70°C"'
+                  priority: HIGH
+                  manual_close: 'YES'
+            -
+              uuid: 3ebef0c05493412a921d4bd953ed7ec5
+              name: 'Interface {#ENTPHYSICALNAME}({#IFALIAS}) Vendor Name'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.24.{#SNMPINDEX}'
+              key: 'hwEntityOpticalVenderNameM[{#ENTPHYSICALNAME}]'
+              delay: 1h
+              history: 10d
+              trends: '0'
+              value_type: TEXT
+              tags:
+                -
+                  tag: Application
+                  value: 'Sinal Optical Multi Lane'
+            -
+              uuid: b1d84a5e8d1c4ee8b0da02752557840c
+              name: 'Interface {#ENTPHYSICALNAME}({#IFALIAS}) Serial'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.24.{#SNMPINDEX}'
+              key: 'hwEntityOpticalVenderSerialM[{#ENTPHYSICALNAME}]'
+              delay: 1h
+              history: 10d
+              trends: '0'
+              value_type: TEXT
+              tags:
+                -
+                  tag: Application
+                  value: 'Sinal Optical Multi Lane'
+            -
+              uuid: fe91f80c30f74d9d9e20a9d6bbc0fb23
+              name: 'Interface {#ENTPHYSICALNAME}({#IFALIAS}) Voltagem'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.5.{#SNMPINDEX}'
+              key: 'hwEntityOpticalVoltM[{#ENTPHYSICALNAME}]'
+              delay: 5m
+              history: 10d
+              units: V
+              tags:
+                -
+                  tag: Application
+                  value: 'Sinal Optical Multi Lane'
+        -
+          uuid: 309b42251f964d49a73d0f4fc9ef5498
+          name: 'Network Optical Modules Single Lane'
+          type: EXTERNAL
+          key: 'discovery_hw_interfaces_opticas_debian11.py[{HOST.CONN},"{$SNMP_COMMUNITY}","{$SNMP_PORTA}","S"]'
+          delay: 1h
+          filter:
+            evaltype: AND
+            conditions:
+              -
+                macro: '{#ENTPHYSICALNAME}'
+                value: XG|Gi|25GE
+                formulaid: A
+              -
+                macro: '{#IFALIAS}'
+                value: '^"XGE.*"$|^""$'
+                operator: NOT_MATCHES_REGEX
+                formulaid: B
+          lifetime: 1d
+          item_prototypes:
+            -
+              uuid: 0ec52fc7e4a24edb9ce73a268ccef335
+              name: 'Interface {#ENTPHYSICALNAME}({#IFALIAS}) Serial'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.4.{#SNMPINDEX}'
+              key: 'hwEntityOpticalSerialS[{#ENTPHYSICALNAME}]'
+              delay: 10m
+              history: 10d
+              trends: '0'
+              value_type: TEXT
+              tags:
+                -
+                  tag: Application
+                  value: 'Sinal Single Lane'
+            -
+              uuid: ed8127ea24974990accbbbc80e16f133
+              name: 'Temperature Interface {#ENTPHYSICALNAME}({#IFALIAS})'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.5.{#SNMPINDEX}'
+              key: 'hwEntityOpticalTemperatureS[{#ENTPHYSICALNAME}]'
+              history: 10d
+              units: Cº
+              tags:
+                -
+                  tag: Application
+                  value: 'Sinal Single Lane'
+              trigger_prototypes:
+                -
+                  uuid: 8f3c1b6df7b3486abbe162bdd5f6a9d0
+                  expression: 'last(/Template Optical Modules Huawei - Corrigido/hwEntityOpticalTemperatureS[{#ENTPHYSICALNAME}])>=70'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Optical Modules Huawei - Corrigido/hwEntityOpticalTemperatureS[{#ENTPHYSICALNAME}])<=70'
+                  name: 'Temperatura crítica: {#ENTPHYSICALNAME}({#IFALIAS}) maior que 70°C"'
+                  priority: HIGH
+                  manual_close: 'YES'
+            -
+              uuid: ae36af0b72274aafa9dff4dedfdd0554
+              name: 'Interface {#ENTPHYSICALNAME}({#IFALIAS}): Vendor Name'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.24.{#SNMPINDEX}'
+              key: 'hwEntityOpticalVenderNameS[{#ENTPHYSICALNAME}]'
+              delay: 1h
+              history: 10d
+              trends: '0'
+              value_type: TEXT
+              tags:
+                -
+                  tag: Application
+                  value: 'Sinal Single Lane'
+            -
+              uuid: 832f3ea79b264938a370cb7d7fb43fe2
+              name: 'Interface {#ENTPHYSICALNAME}({#IFALIAS}) Voltagem'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.6.{#SNMPINDEX}'
+              key: 'hwEntityOpticalVoltS[{#ENTPHYSICALNAME}]'
+              history: 10d
+              value_type: FLOAT
+              units: V
+              preprocessing:
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '0.001'
+              tags:
+                -
+                  tag: Application
+                  value: 'Sinal Single Lane'
+            -
+              uuid: 69be48daa36b4d7889283ee43d335544
+              name: 'Interface {#ENTPHYSICALNAME}({#IFALIAS}): RX Power'
+              type: EXTERNAL
+              key: 'run_signal["{$SNMP_COMMUNITY}",{HOST.CONN},"{#SNMPINDEX}","{$SNMP_PORTA}","RX","S"]'
+              history: 10d
+              value_type: FLOAT
+              units: dBm
+              preprocessing:
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '0.01'
+              tags:
+                -
+                  tag: Application
+                  value: 'Sinal Single Lane'
+              trigger_prototypes:
+                -
+                  uuid: 848b25ed45d4431882be536b463a41ea
+                  expression: |
+                    (last(/Template Optical Modules Huawei - Corrigido/run_signal["{$SNMP_COMMUNITY}",{HOST.CONN},"{#SNMPINDEX}","{$SNMP_PORTA}","RX","S"])
+                     <= 
+                    (last(/Template Optical Modules Huawei - Corrigido/run_signal["{$SNMP_COMMUNITY}",{HOST.CONN},"{#SNMPINDEX}","{$SNMP_PORTA}","RX","S"]) * 0.93))
+                    and
+                    (last(/Template Optical Modules Huawei - Corrigido/run_signal["{$SNMP_COMMUNITY}",{HOST.CONN},"{#SNMPINDEX}","{$SNMP_PORTA}","RX","S"]) <=-40)
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Optical Modules Huawei - Corrigido/run_signal["{$SNMP_COMMUNITY}",{HOST.CONN},"{#SNMPINDEX}","{$SNMP_PORTA}","RX","S"])>=-40'
+                  name: 'Existe um possível Rompimento de fibra na  {#ENTPHYSICALNAME}({#IFALIAS}) Sinal -40 dBm'
+                  priority: DISASTER
+                  manual_close: 'YES'
+                -
+                  uuid: 32787020e97c4183b77ac8671bce858c
+                  expression: 'last(/Template Optical Modules Huawei - Corrigido/run_signal["{$SNMP_COMMUNITY}",{HOST.CONN},"{#SNMPINDEX}","{$SNMP_PORTA}","RX","S"])<=-26'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Optical Modules Huawei - Corrigido/run_signal["{$SNMP_COMMUNITY}",{HOST.CONN},"{#SNMPINDEX}","{$SNMP_PORTA}","RX","S"])>=-26'
+                  name: 'Sinal elevado na interface:{#ENTPHYSICALNAME}({#IFALIAS}) acima de -26 dBm'
+                  priority: WARNING
+                  manual_close: 'YES'
+            -
+              uuid: cab5f495cf164f5892e26a7684a54a23
+              name: 'Interface {#ENTPHYSICALNAME}({#IFALIAS}): TX Power'
+              type: EXTERNAL
+              key: 'run_signal["{$SNMP_COMMUNITY}",{HOST.CONN},"{#SNMPINDEX}","{$SNMP_PORTA}","TX","S"]'
+              history: 10d
+              value_type: FLOAT
+              units: dBm
+              preprocessing:
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '0.01'
+              tags:
+                -
+                  tag: Application
+                  value: 'Sinal Single Lane'
+      macros:
+        -
+          macro: '{$ATTENUATIONFACTOR}'
+          value: '-2'
+        -
+          macro: '{$SNMP_PORTA}'
+          value: '161'
+        -
+          macro: '{$TRANSCEIVER_TEMP_WARN}'
+          value: '70'
